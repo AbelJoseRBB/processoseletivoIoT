@@ -138,7 +138,7 @@ Para isso, você precisa gerar uma API Key.
 1. Vá em Settings
 2. Acesse Secrets and variables → Actions
 3. Clique em New repository secret
-4. Nome: WOKWI_API_KEY
+4. Nome: WOKWI_CLI_TOKEN
 5. Valor: sua chave gerada
 6. Salve
 
