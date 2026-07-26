@@ -17,7 +17,7 @@ alarme_porta = False
 referencia_definida = False
 temperatura_referencia = 0.0
 alarme_termico = False
-
+tempo_normalizacao = 0
 
 def ler_temperatura(i2c):
     dados = i2c.readfrom_mem(MPU6050_ADDR, REG_TEMP_OUT_H, 2)
@@ -41,7 +41,7 @@ def setup():
 
 
 def loop():
-    global porta_estava_aberta, porta_aberta_desde, alarme_porta
+    global porta_estava_aberta, porta_aberta_desde, alarme_porta, tempo_normalizacao
     global referencia_definida, temperatura_referencia, alarme_termico
 
     estado_porta_fechada = not botao.value()
@@ -93,7 +93,7 @@ def loop():
         referencia_definida = False
         print("Status: Sistema Normalizado.")
 
-    utime.sleep_ms(100)
+    utime.sleep_ms(600)
 
 
 setup()
