@@ -15,6 +15,12 @@ LIMITE_VARIACAO_Y = 3.0
 
 INTERVALO_AMOSTRAGEM = 600
 
+# --- Debounce do botão ---
+DEBOUNCE_MS = 50
+leitura_anterior = 1          # último valor bruto lido do pino (1 = solto/pull-up)
+estado_debounced = 1          # último valor considerado "estável"
+ultimo_tempo_mudanca = 0      # timestamp da última mudança bruta detectada
+
 # Monitoramento porta
 porta_estava_aberta = False
 porta_aberta_desde = 0
@@ -37,11 +43,26 @@ def ler_temperatura(i2c):
     # Conversão para graus Celsius
     return (bruto / 340.0) + 36.53
 
+#Realiza o debounce do botão
+def ler_botao_debounced():
+    global leitura_anterior, estado_debounced, ultimo_tempo_mudanca
+
+    leitura_atual = botao.value()
+
+    if leitura_atual != leitura_anterior:
+        ultimo_tempo_mudanca = utime.ticks_ms()
+        leitura_anterior = leitura_atual
+
+    if utime.ticks_diff(utime.ticks_ms(), ultimo_tempo_mudanca) >= DEBOUNCE_MS:
+        estado_debounced = leitura_atual
+
+    return estado_debounced
+
 def loop():
     global porta_estava_aberta, porta_aberta_desde, alarme_porta
     global referencia_definida, temperatura_referencia, alarme_termico
 
-    porta_fechada = not botao.value()
+    porta_fechada = not ler_botao_debounced()
     temperatura_atual = ler_temperatura(i2c)
 
     # Caso a porta esteja aberta 
