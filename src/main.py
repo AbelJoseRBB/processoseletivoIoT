@@ -2,6 +2,8 @@ from machine import Pin, I2C
 import utime
 
 PINO_BOTAO = 4
+PINO_SCL = 22
+PINO_SDA = 21
 MPU6050_ADDR = 0x68
  
 REG_PWR_MGMT_1 = 0x6B
@@ -32,7 +34,7 @@ def ler_temperatura(i2c):
 def setup():
     global i2c, botao
  
-    i2c = I2C(0, scl=Pin(22), sda=Pin(21), freq=400000)
+    i2c = I2C(0, scl= Pin(PINO_SCL), sda= Pin(PINO_SDA), freq=400000)
  
     i2c.writeto_mem(MPU6050_ADDR, REG_PWR_MGMT_1, bytes([0]))
  
