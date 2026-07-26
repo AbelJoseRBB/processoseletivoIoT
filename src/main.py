@@ -15,11 +15,11 @@ LIMITE_VARIACAO_Y = 3.0
 
 INTERVALO_AMOSTRAGEM = 600
 
-# --- Debounce do botão ---
+# Debounce do botão 
 DEBOUNCE_MS = 50
-leitura_anterior = 1          # último valor bruto lido do pino (1 = solto/pull-up)
-estado_debounced = 1          # último valor considerado "estável"
-ultimo_tempo_mudanca = 0      # timestamp da última mudança bruta detectada
+leitura_anterior = 1          
+estado_debounced = 1          
+ultimo_tempo_mudanca = 0      
 
 # Monitoramento porta
 porta_estava_aberta = False
@@ -43,7 +43,7 @@ def ler_temperatura(i2c):
     # Conversão para graus Celsius
     return (bruto / 340.0) + 36.53
 
-#Realiza o debounce do botão
+# Realiza o debounce do botão
 def ler_botao_debounced():
     global leitura_anterior, estado_debounced, ultimo_tempo_mudanca
 

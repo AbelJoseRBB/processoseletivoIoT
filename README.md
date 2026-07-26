@@ -2,7 +2,6 @@
 
 ## Etapa Prática – Sistemas Embarcados
 
-
 ### Identificação do Candidato
 
 - **Nome completo: Abel José Rocha Barros Bezerra**
@@ -19,7 +18,6 @@ O sistema tem como objetivo o monitoramento de temperatura de ambientes refriger
 
 Caso um limite configurado seja ultrapassado, o sistema emitirá um alerta via Serial e quando ambas as condições retornam para os padrões seguros simultaneamente, o sistema reporta a normalização. 
 
-
 ---
 
 ## Arquitetura do Sistema Embarcado
@@ -33,8 +31,7 @@ O fluxo do `main.py` é feito da seguinte foram:
 - Imprime a mensagem `"Sistema de Monitoramento Inicializado"` assim que os periféricos estão prontos.
 
 **2. Loop principal**
-- A cada iteração, lê o estado do botão e a temperatura atual do MPU6050 (registrador `TEMP_OUT_H`,
-  convertido para °C).
+- A cada iteração, lê o estado do botão e a temperatura atual do MPU6050.
 - Usa `utime.sleep_ms(600)` como intervalo de amostragem (em vez de um `sleep` longo bloqueante),
   mantendo o loop responsivo entre uma leitura e outra.
 
@@ -42,7 +39,7 @@ O fluxo do `main.py` é feito da seguinte foram:
 - Ao detectar a porta aberta pela primeira vez, guarda o timestamp (`utime.ticks_ms()`).
 - A cada iteração seguinte, verifica com `utime.ticks_diff()` se o tempo decorrido ultrapassou
   `LIMITE_TEMPO_X` (5000 ms). Se sim, e o alarme ainda não foi disparado, imprime o alerta de porta
-  aberta e marca `alarme_porta = True` (evita reimpressão a cada loop).
+  aberta e marca `alarme_porta = True` , evitando reimpressão a cada loop.
 
 **4. Máquina de estados — Temperatura**
 - Enquanto a porta está fechada, se ainda não existe uma referência definida, captura a temperatura
@@ -57,78 +54,50 @@ O fluxo do `main.py` é feito da seguinte foram:
 - Nesse momento, imprime `"Status: Sistema Normalizado."` e limpa `referencia_definida`, permitindo
   que uma nova referência seja capturada no próximo fechamento.
 
-
-Explique a arquitetura lógica do seu projeto, abordando:
-
-- Fluxo principal do programa (`main.py`)
-- Estrutura de estados, loops ou temporizações
-- Como os componentes interagem entre si
-
-Se desejar, utilize tópicos ou um pequeno diagrama em texto.
-
 ---
 
 ## Componentes Utilizados na Simulação
 
 - **ESP32:** microcontrolador principal, executa o firmware em MicroPython.
+
 - **MPU6050:** conectado via I2C , utilizado como sensor de temperatura ambiente.
-- **Botão:** conectado com pull-up interno, simula o estado físico da porta/tampa (`pressionado = fechada`, `solto = aberta`).
+
+- **Botão:** conectado com pull-up interno, simula o estado físico da porta/tampa (`pressionado = fechada` - `solto = aberta`)
+
 - **Serial (UART):** usada para enviar as mensagens de status/alerta lidas pela esteira de CI.
 
 ---
 
 ## Decisões Técnicas Relevantes
 
-Explique brevemente decisões importantes tomadas durante o desenvolvimento, como:
+- **Função `ler_temperatura(i2c)`:** Utilizando bibliotecas externas do MPU6050 como refêrencia, a implementação foi simplificada para incluir somente as funcionalidades necessárias ao problema, evitando dependências externas e reduzindo a complexidade do código.
 
-- Organização do código
-- Uso de funções, estados ou constantes
-- Estratégias para temporização ou controle lógico
+- **Flags de estado** (`alarme_porta`, `alarme_termico`, `referencia_definida`) para controlar
+  transições e impedir que a mesma mensagem seja impressa repetidamente enquanto a condição persiste. 
+
+- **Arquitetura não bloqueante:** o único delay do loop é um `sleep_ms(600)` curto, garantindo que o
+  firmware não perca a janela de tempo em que o simulador altera botão/temperatura.
+
+- **Função `ler_botao_debounced()`:** Utilizada para eliminar os efeitos de bounce do botão, garantindo leituras mais confiáveis do estado da porta por meio da validação temporal das mudanças de sinal.
 
 ---
 
 ## Resultados Obtidos
 
-Descreva o comportamento final do sistema:
-
-- O que funciona corretamente
-- Quais requisitos foram atendidos
-- Resultado observado na simulação do Wokwi
+- O sistema imprime corretamente a mensagem de inicialização ao ligar.
+- Ao manter a porta aberta por tempo igual ou superior a `LIMITE_TEMPO_X`, o alerta de porta aberta
+  é disparado uma única vez.
+- Ao elevar a temperatura acima do gradiente `LIMITE_VARIACAO_Y` em relação à referência, o alerta de
+  degradação térmica é disparado uma única vez.
+- Ao fechar a porta com a temperatura dentro do limite aceitável, o sistema reporta a normalização e
+  limpa os estados de alarme.
 
 ---
 
 ## Comentários Adicionais (Opcional)
 
-Utilize este espaço para comentar, se desejar:
-
-- Dificuldades encontradas
-- Limitações da solução
-- Melhorias que você faria com mais tempo
-- Principais aprendizados durante o desafio
+Com o desenvolvimento deste projeto, foi possível aprofundar os conhecimentos sobre o sensor MPU6050, explorando sua comunicação via I2C, seus registradores e as diferentes formas de integração em sistemas embarcados. Para isso, foram consultadas bibliotecas e materiais de referência, dos quais foram aproveitadas apenas as funcionalidades necessárias para a solução proposta. Além do aprendizado técnico, o projeto proporcionou uma experiência próxima de aplicações encontradas no ambiente industrial, onde o monitoramento de condições operacionais e a geração de alertas são requisitos comuns, contribuindo para a preparação em desafios semelhantes no futuro.
 
 ---
 
-> Este relatório faz parte da avaliação técnica.  
-> Clareza, objetividade e organização são tão importantes quanto o funcionamento do código.
 
----
-
-## Especificação dos Testes Automatizados (Wokwi CI)
-
-Para que o projeto seja validado com sucesso na esteira de integração contínua (CI), o firmware escrito em MicroPython deve interagir corretamente com as leituras dos sensores descritos em cada cenário e enviar as mensagens de status exatas.
-
-### Requisitos Críticos de Implementação
-
-1. **Casamento Exato de Strings:** O Wokwi CI faz uma verificação estrita caractere por caractere. Se houver divergência em maiúsculas/minúsculas, acentuação ou falta de pontuação, o teste irá falhar.
-2. **Arquitetura Não-Bloqueante:** Evite o uso de funções bloqueantes. Elas podem fazer com que o firmware perca a janela de tempo em que o simulador altera o peso, quebrando a sincronia do teste automatizado.
-
----
-
-## Suporte
-
-Em caso de dúvidas:
-
-- Consulte o material dos cursos EAD
-- Leia atentamente este README
-- Analise os logs das GitHub Actions
-- Utilize os canais oficiais para contato com os instrutores
